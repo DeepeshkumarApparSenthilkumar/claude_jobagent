@@ -12,14 +12,18 @@ from db.tracker import mark_applied, mark_failed
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 logger = logging.getLogger(__name__)
 
-LINKEDIN_EMAIL = os.environ.get("LINKEDIN_EMAIL", "")
-LINKEDIN_PASSWORD = os.environ.get("LINKEDIN_PASSWORD", "")
 PROFILE_DIR = r"C:\Users\dk505\.linkedin-mcp\profile"
 ATS_THRESHOLD = 80
+INTERN_KEYWORDS = ["intern", "internship", "co-op", "coop"]
 
 
 def human_delay(min_s: float = 3.0, max_s: float = 8.0):
     time.sleep(random.uniform(min_s, max_s))
+
+
+def is_internship(job: dict) -> bool:
+    text = (job.get("title", "") + " " + job.get("description", "")[:300]).lower()
+    return any(k in text for k in INTERN_KEYWORDS)
 
 
 def get_tailored_resume_path(job_id: int) -> str:
@@ -29,91 +33,137 @@ def get_tailored_resume_path(job_id: int) -> str:
     return tailored if os.path.exists(tailored) else fallback
 
 
+def click_first_visible(page, selectors: list[str], timeout: int = 3000) -> bool:
+    """Try each selector in order, click the first visible one. Returns True if clicked."""
+    for sel in selectors:
+        try:
+            btn = page.locator(sel).first
+            if btn.is_visible(timeout=timeout):
+                btn.click()
+                return True
+        except Exception:
+            continue
+    return False
+
+
 def apply_to_job(job: dict, page) -> bool:
-    """Attempt LinkedIn Easy Apply on a single job. Returns True on success."""
+    """Attempt LinkedIn Easy Apply. Returns True on success."""
     url = job["url"]
     job_id = job["id"]
 
     try:
-        logger.info(f"Navigating to: {url}")
+        logger.info(f"Opening: [{job_id}] {job['title']} @ {job['company']}")
         page.goto(url, timeout=30000)
-        human_delay(3, 6)
+        human_delay(3, 5)
 
-        # Click Easy Apply button
-        easy_apply_btn = page.locator("button.jobs-apply-button").first
-        if not easy_apply_btn.is_visible(timeout=8000):
-            logger.warning(f"No Easy Apply button found for job {job_id}")
+        # Find and click Easy Apply button
+        easy_apply_clicked = click_first_visible(page, [
+            "button.jobs-apply-button",
+            "button[aria-label*='Easy Apply']",
+            "button[aria-label*='Apply']",
+            ".jobs-apply-button",
+        ], timeout=8000)
+
+        if not easy_apply_clicked:
+            logger.warning(f"  No Easy Apply button for job {job_id} — skipping")
+            mark_failed(job_id, "no_easy_apply_button")
             return False
 
-        easy_apply_btn.click()
-        human_delay(2, 4)
+        human_delay(2, 3)
 
-        # Handle multi-step form
-        max_steps = 10
-        for step in range(max_steps):
-            logger.debug(f"  Form step {step + 1}")
+        # Multi-step form — up to 10 steps
+        for step in range(10):
+            logger.debug(f"  Step {step + 1}")
 
-            # Fill phone if empty
-            phone_field = page.locator("input[id*='phoneNumber']").first
-            if phone_field.is_visible(timeout=2000):
-                val = phone_field.input_value()
-                if not val:
-                    phone_field.fill(os.environ.get("PHONE_NUMBER", ""))
-                    human_delay(0.5, 1.5)
+            # Fill phone number if field is empty
+            try:
+                phone = page.locator("input[id*='phoneNumber'], input[name*='phone']").first
+                if phone.is_visible(timeout=1500):
+                    if not phone.input_value():
+                        phone.fill(os.environ.get("PHONE_NUMBER", ""))
+                        human_delay(0.5, 1.0)
+            except Exception:
+                pass
 
-            # Upload resume if file input is visible
-            resume_path = get_tailored_resume_path(job_id)
-            file_input = page.locator("input[type='file']").first
-            if file_input.is_visible(timeout=2000):
-                logger.info(f"  Uploading resume: {resume_path}")
-                file_input.set_input_files(resume_path)
-                human_delay(1, 3)
+            # Upload resume if file input visible
+            try:
+                file_input = page.locator("input[type='file']").first
+                if file_input.is_visible(timeout=1500):
+                    resume_path = get_tailored_resume_path(job_id)
+                    logger.info(f"  Uploading: {os.path.basename(resume_path)}")
+                    file_input.set_input_files(resume_path)
+                    human_delay(1, 2)
+            except Exception:
+                pass
 
-            # Check for Submit button
-            submit_btn = page.locator("button[aria-label='Submit application']").first
-            if submit_btn.is_visible(timeout=3000):
-                submit_btn.click()
-                human_delay(2, 4)
-                logger.info(f"  Application submitted for job {job_id}")
-                mark_applied(job_id)
-                return True
+            # Check for Submit
+            try:
+                submit = page.locator("button[aria-label='Submit application']").first
+                if submit.is_visible(timeout=2000):
+                    submit.click()
+                    human_delay(2, 3)
+                    logger.info(f"  ✅ Submitted: [{job_id}] {job['title']} @ {job['company']}")
+                    mark_applied(job_id)
+                    return True
+            except Exception:
+                pass
 
-            # Check for Next / Review / Continue button
-            next_btn = (
-                page.locator("button[aria-label='Continue to next step']").first
-                or page.locator("button[aria-label='Review your application']").first
-                or page.locator("button:has-text('Next')").first
-                or page.locator("button:has-text('Review')").first
-            )
-            if next_btn.is_visible(timeout=3000):
-                next_btn.click()
-                human_delay(2, 4)
+            # Check for Next / Review / Continue
+            advanced = click_first_visible(page, [
+                "button[aria-label='Continue to next step']",
+                "button[aria-label='Review your application']",
+                "button[aria-label='Next']",
+                "button:has-text('Next')",
+                "button:has-text('Review')",
+                "button:has-text('Continue')",
+            ], timeout=2000)
+
+            if advanced:
+                human_delay(1.5, 3)
                 continue
 
-            # Modal closed or unexpected state
-            logger.warning(f"  Unexpected form state at step {step + 1} for job {job_id}")
+            # Modal may have closed
+            logger.warning(f"  Stuck at step {step + 1} for job {job_id}")
             break
 
-        logger.error(f"Could not complete application for job {job_id} after {max_steps} steps")
-        mark_failed(job_id, "max_steps_reached")
+        logger.error(f"  ❌ Could not complete: [{job_id}] {job['title']}")
+        mark_failed(job_id, "form_incomplete")
         return False
 
     except PlaywrightTimeout as e:
-        logger.error(f"Timeout on job {job_id}: {e}")
-        mark_failed(job_id, f"timeout: {e}")
+        logger.error(f"  Timeout on job {job_id}: {e}")
+        mark_failed(job_id, "timeout")
         return False
     except Exception as e:
-        logger.error(f"Error applying to job {job_id}: {e}")
-        mark_failed(job_id, str(e))
+        logger.error(f"  Error on job {job_id}: {e}")
+        mark_failed(job_id, str(e)[:100])
         return False
 
 
 def apply_batch(jobs: list[dict]) -> dict:
     if not jobs:
         logger.info("No jobs to apply to.")
-        return {"applied": 0, "failed": 0}
+        return {"applied": 0, "failed": 0, "skipped": 0}
 
-    applied = failed = 0
+    applied = failed = skipped = 0
+
+    # Filter: internships only + must be LinkedIn URL
+    intern_jobs = []
+    for job in jobs:
+        if "linkedin.com" not in job.get("url", ""):
+            logger.info(f"  Skipping non-LinkedIn: {job['title']} @ {job['company']}")
+            skipped += 1
+            continue
+        if not is_internship(job):
+            logger.info(f"  Skipping non-internship: {job['title']} @ {job['company']}")
+            skipped += 1
+            continue
+        intern_jobs.append(job)
+
+    logger.info(f"Intern jobs to apply: {len(intern_jobs)} (skipped {skipped} non-intern/non-LinkedIn)")
+
+    if not intern_jobs:
+        return {"applied": 0, "failed": 0, "skipped": skipped}
 
     with sync_playwright() as p:
         browser = p.chromium.launch_persistent_context(
@@ -124,22 +174,21 @@ def apply_batch(jobs: list[dict]) -> dict:
         )
         page = browser.new_page()
 
-        # Verify logged in
+        # Verify session
         page.goto("https://www.linkedin.com/feed/", timeout=20000)
-        human_delay(3, 5)
+        human_delay(3, 4)
 
         if "login" in page.url or "authwall" in page.url:
             logger.error("LinkedIn session expired. Run: uvx linkedin-scraper-mcp --login")
             browser.close()
-            return {"applied": 0, "failed": len(jobs)}
+            return {"applied": 0, "failed": len(intern_jobs), "skipped": skipped}
 
-        for job in jobs:
+        logger.info("LinkedIn session active. Starting applications...")
+
+        for job in intern_jobs:
             if job.get("ats_score", 0) < ATS_THRESHOLD:
-                logger.info(f"Skipping job {job['id']} — ATS score {job['ats_score']} < {ATS_THRESHOLD}")
-                continue
-
-            if "linkedin.com" not in job.get("url", ""):
-                logger.info(f"Skipping non-LinkedIn job {job['id']}: {job['url']}")
+                logger.info(f"  Skipping low ATS: {job['title']} ({job['ats_score']})")
+                skipped += 1
                 continue
 
             success = apply_to_job(job, page)
@@ -152,12 +201,11 @@ def apply_batch(jobs: list[dict]) -> dict:
 
         browser.close()
 
-    logger.info(f"Apply batch done: {applied} applied, {failed} failed")
-    return {"applied": applied, "failed": failed}
+    logger.info(f"Apply batch done — Applied: {applied} | Failed: {failed} | Skipped: {skipped}")
+    return {"applied": applied, "failed": failed, "skipped": skipped}
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    # Test with empty list
     result = apply_batch([])
     print(f"Result: {result}")

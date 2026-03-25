@@ -81,12 +81,40 @@ def parse_job_posting(text: str, job_id: str, url: str) -> dict:
     }
 
 
+INTERN_KEYWORDS = ["intern", "internship", "co-op", "coop"]
+USA_KEYWORDS = ["united states", "usa", "u.s.", "remote", "chicago", "new york",
+                "san francisco", "seattle", "austin", "boston", "los angeles",
+                "new york city", "nyc", "sf", "bay area", "nationwide"]
+REJECT_LOCATION = ["india only", "canada only", "must be located in india",
+                   "must be located in canada", "work authorization in india"]
+
+
+def is_usa_job(description: str, title: str) -> bool:
+    """Return True if job is in USA or remote (acceptable)."""
+    text = (description + " " + title).lower()
+    # Reject if explicitly non-USA
+    if any(r in text for r in REJECT_LOCATION):
+        return False
+    # Accept if contains a USA location keyword
+    if any(k in text for k in USA_KEYWORDS):
+        return True
+    # If no location info at all, accept (could be remote)
+    return True
+
+
+def is_intern_job(title: str, description: str) -> bool:
+    """Return True if job is an internship."""
+    text = (title + " " + description[:500]).lower()
+    return any(k in text for k in INTERN_KEYWORDS)
+
+
 async def scrape_with_session(session, titles: list, location: str, blacklist: set) -> int:
     """Run all searches using a single authenticated MCP session."""
     total_new = 0
 
     for title in titles:
         logger.info(f"LinkedIn MCP: searching '{title}' in '{location}'")
+        is_intern_search = any(k in title.lower() for k in INTERN_KEYWORDS)
 
         search_args = {
             "keywords": title,
@@ -94,8 +122,9 @@ async def scrape_with_session(session, titles: list, location: str, blacklist: s
             "easy_apply": True,
             "work_type": "remote",
             "max_pages": 2,
+            "date_posted": "past_week",
         }
-        if "intern" in title.lower():
+        if is_intern_search:
             search_args["experience_level"] = "internship"
 
         try:
@@ -159,6 +188,11 @@ async def scrape_with_session(session, titles: list, location: str, blacklist: s
 
             if job["company"] in blacklist:
                 logger.info(f"  Skipping blacklisted: {job['company']}")
+                continue
+
+            # USA filter
+            if not is_usa_job(job["description"], job["title"]):
+                logger.info(f"  Skipping non-USA job: {job['title']} @ {job['company']}")
                 continue
 
             db_id = add_job(

@@ -1,15 +1,39 @@
 job_search:
+  # Primary: internships only
+  intern_titles:
+    - "AI Engineer Intern"
+    - "Machine Learning Intern"
+    - "Software Engineer Intern"
+    - "ML Intern"
+    - "Data Science Intern"
+    - "AI Research Intern"
+
+  # Secondary: entry-level only (applied separately, lower priority)
+  entry_titles:
+    - "AI Engineer"
+    - "Machine Learning Engineer"
+
+  # Combined list used by scrapers
   titles:
     - "AI Engineer Intern"
     - "Machine Learning Intern"
+    - "Software Engineer Intern"
+    - "ML Intern"
+    - "Data Science Intern"
+    - "AI Research Intern"
     - "AI Engineer"
     - "Machine Learning Engineer"
-    - "Software Engineer"
+
   location: "United States"
   remote: true
   ats_score_threshold: 80
   daily_application_limit: 10
   easy_apply_only: true
+
+  # Only apply to internships automatically
+  auto_apply_types:
+    - "intern"
+
   keywords:
     - Python
     - LLM
@@ -21,9 +45,32 @@ job_search:
     - RAG
     - LangChain
     - FastAPI
+
+  # USA location keywords — job description must contain at least one
+  usa_keywords:
+    - "United States"
+    - "USA"
+    - "U.S."
+    - "Remote"
+    - "Chicago"
+    - "New York"
+    - "San Francisco"
+    - "Seattle"
+    - "Austin"
+    - "Boston"
+    - "Los Angeles"
+
+  # Reject if description contains these (international non-remote)
+  reject_location_keywords:
+    - "India only"
+    - "Canada only"
+    - "must be located in India"
+    - "must be located in Canada"
+    - "work authorization in India"
+
   blacklist_companies:
     - "Rex.zone"
     - "Jobs via Dice"
     - "DataAnnotation"
-    - "Turing"
     - "Jobright.ai"
+    - "Turing"
