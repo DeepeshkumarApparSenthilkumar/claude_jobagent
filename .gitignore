@@ -1,0 +1,40 @@
+# Secrets & credentials
+.env
+*.env
+
+# Database (personal job data)
+db/jobs.db
+*.db
+
+# Generated resume/cover letter outputs (personal)
+resume/tailored_*.txt
+resume/cover_*.txt
+
+# ATS result logs (personal)
+logs/ats_*.json
+logs/daily_*.log
+logs/scheduler.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# LinkedIn session (credentials)
+.linkedin-mcp/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,55 @@
+Deepesh Kumar Appar Senthilkumar
+dapparsenthilkumar@hawk.illinoistech.edu
+linkedin.com/in/deepesh-kumar-a90a16218 | deepeshkumar.vercel.app 312-451-3943 | Chicago, IL
+Summary
+M.S. Artificial Intelligence candidate at Illinois Institute of Technology with hands-on experience building LLM-driven agents, RAG
+pipelines, and production ML systems across research, internships, and hackathons. Delivered measurable results: +47% app
+engagement, 2+ hrs/day saved via automation, and Hackathon Winner recognition.
+Experience
+Illinois Institute of Technology | Research Assistant Chicago, IL
+Jan 2026 – Present
+(cid:136) Architected multi-agent automations in Microsoft Copilot Studio integrating Outlook and scheduling workflows, targeting a
+40% reduction in manual coordination time across enterprise research teams.
+(cid:136) Optimized text-to-SQL interfaces with schema-aware mapping and self-correction loops under Dr. Gerald Balekaki, improving
+executable query accuracy by 30% on complex natural-language inputs.
+I Am I Authentications, Inc. | AI R&D Intern Remote
+Jan 2026 – Present
+(cid:136) Prototyped anomaly detection models for identity verification using behavioral risk scoring; designed to reduce false
+acceptance rates by 25% in pilot authentication flows.
+Sportsmechanics Pvt. Ltd. | Machine Learning Intern Chennai, India
+Dec 2023 – Jul 2024
+(cid:136) Architected an AI commentary engine for IPL/TNPL ingesting live match data streams to generate context-aware narrative
+insights, serving 100K+ concurrent broadcast users.
+(cid:136) Shipped event-driven personalized match alerts for the TNPL app, directly driving a 47% measurable surge in session
+viewership across 3 tournament rounds.
+(cid:136) Built a YOLO-based ball-tracking CV model from scratch, achieving sub-100ms inference latency for real-time trajectory
+analytics used by 4 coaching teams.
+Projects
+Text-to-SQL AI Agent | MCP | FastAPI | React | Groq LLM 2025
+(cid:136) Designed a 3-layer reasoning architecture (Discovery → Planning → Execution) with a self-correction loop that reduced
+invalid SQL queries by ∼60%; built a React chain-of-thought UI enabling non-technical users to query databases in plain
+English with zero SQL knowledge.
+Wayfair Market Intelligence Agent | n8n | Python | Zapier | LLM Dec 2025 – Feb 2026
+(cid:136) Deployed autonomous agents to monitor competitor pricing across 500+ SKUs daily; automated LLM-powered trend
+summaries for stakeholders, eliminating 10+ hrs/week of manual supply chain research for a $14B retail operation.
+AI News & Sentiment RAG Agent | n8n | Gemini | NewsAPI | pgvector 2025
+(cid:136) Builtanend-to-endRAG pipelineingesting 200+ daily articles, performingvectorsearchoverapgvectorstore, andscoring
+sentiment with Gemini; automated executive briefs via Gmail, saving 2+ hrs/day across a 5-person analyst team.
+Career Path AI – Hackathon Winner | Mixtral-8x7B | Node.js | SerpAPI | LLM 2025
+(cid:136) Built a Mixtral-8x7B career mentor that parsed resumes for ATS scoring, queried live job data via SerpAPI to surface skill
+gaps, and generated custom project roadmaps; cut skill-gap analysis from 3 hrs to <2 min — awarded Hackathon Winner
+among 50+ teams.
+chi360 – AI-Integrated Urban Intelligence Platform | React | Node.js | Claude AI | Supabase | Vercel Demon Hacks 2025
+(cid:136) Led a 6-person team to ship a 6-pillar city intelligence platform (transit, housing, air quality, markets) in 48 hours;
+embedded Claude AI as a conversational city guide for natural-language queries across all modules, integrated 4 live public
+APIs, and delivered a Supabase-authenticated React app demoed to 200+ judges.
+Skills
+Languages: Python, SQL, TypeScript / JavaScript, C++, MATLAB
+AI / ML:LLMs(Gemini,GPT-4,Mixtral,Groq),RAG,AgenticWorkflows,NLP,Transformers,Scikit-learn,YOLO,Text-to-SQL
+Backend & APIs: FastAPI, Node.js, REST APIs, WebSocket, n8n, Zapier, Microsoft Copilot Studio
+Data & Infra: PostgreSQL, pgvector, Pinecone, Supabase, Docker, Git, Tableau, Power BI, React
+Education
+Illinois Institute of Technology Chicago, IL
+M.S. in Artificial Intelligence | GPA: 3.6 / 4.0 Aug 2024 – May 2026
+Shiv Nadar University Chennai, India
+B.Tech in Computer Science & Engineering (IoT) | GPA: 3.7 / 4.0 Sep 2021 – May 2025

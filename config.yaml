@@ -1,0 +1,29 @@
+job_search:
+  titles:
+    - "AI Engineer Intern"
+    - "Machine Learning Intern"
+    - "AI Engineer"
+    - "Machine Learning Engineer"
+    - "Software Engineer"
+  location: "United States"
+  remote: true
+  ats_score_threshold: 80
+  daily_application_limit: 10
+  easy_apply_only: true
+  keywords:
+    - Python
+    - LLM
+    - Machine Learning
+    - PyTorch
+    - TensorFlow
+    - OpenAI
+    - Anthropic
+    - RAG
+    - LangChain
+    - FastAPI
+  blacklist_companies:
+    - "Rex.zone"
+    - "Jobs via Dice"
+    - "DataAnnotation"
+    - "Turing"
+    - "Jobright.ai"
